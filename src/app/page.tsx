@@ -1,65 +1,419 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { EpisodeGrid } from '@/components/EpisodeGrid';
+import { SearchBar } from '@/components/SearchBar';
+import { CategoryPills } from '@/components/CategoryPills';
+import { FormatPills } from '@/components/FormatPills';
+import { EpisodeDrawer } from '@/components/EpisodeDrawer';
+import { StatsPanel } from '@/components/StatsPanel';
+import { getGradientColor } from '@/lib/categories';
+import type { Episode, EpisodeWithHighlight } from '@/types/episode';
+
+interface FormatCount {
+  name: string;
+  count: number;
+  episodeIds: number[];
+}
 
 export default function Home() {
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [highlightedIds, setHighlightedIds] = useState<Map<number, string>>(new Map());
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeFormat, setActiveFormat] = useState<string | null>(null);
+  const [resultCount, setResultCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [topicsExpanded, setTopicsExpanded] = useState(false);
+  const [formatsExpanded, setFormatsExpanded] = useState(false);
+  const [statsExpanded, setStatsExpanded] = useState(false);
+  const [activeGuest, setActiveGuest] = useState<string | null>(null);
+  const [activeCompany, setActiveCompany] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+  const [excludedFormats, setExcludedFormats] = useState<Set<string>>(new Set());
+  const [excludeMode, setExcludeMode] = useState(false);
+  const [formatCounts, setFormatCounts] = useState<FormatCount[]>([]);
+
+  // Load all episodes on mount
+  useEffect(() => {
+    fetch('/api/episodes')
+      .then(res => res.json())
+      .then(data => {
+        setEpisodes(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load episodes:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  // Load format counts for exclusion calculations
+  useEffect(() => {
+    fetch('/api/format-counts')
+      .then(res => res.json())
+      .then((data: FormatCount[]) => {
+        setFormatCounts(data);
+      })
+      .catch(err => console.error('Failed to load format counts:', err));
+  }, []);
+
+  // Helper to apply highlights from results
+  const applyHighlights = (results: Episode[]) => {
+    const newHighlights = new Map<number, string>();
+    results.forEach((ep, index) => {
+      newHighlights.set(ep.id, getGradientColor(index, results.length));
+    });
+    setHighlightedIds(newHighlights);
+    setResultCount(results.length);
+  };
+
+  const clearHighlights = () => {
+    setHighlightedIds(new Map());
+    setResultCount(0);
+  };
+
+  // Handle search
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
+    setActiveCategory(null);
+    setActiveFormat(null);
+    setActiveGuest(null);
+    setActiveCompany(null);
+
+    if (!query.trim()) {
+      clearHighlights();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const results: Episode[] = await res.json();
+      applyHighlights(results);
+    } catch (err) {
+      console.error('Search failed:', err);
+    }
+  }, []);
+
+  // Handle category selection
+  const handleCategorySelect = useCallback(async (categoryName: string | null) => {
+    setActiveCategory(categoryName);
+    setActiveFormat(null);
+    setActiveGuest(null);
+    setActiveCompany(null);
+    setSearchQuery('');
+
+    if (!categoryName) {
+      clearHighlights();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/category?name=${encodeURIComponent(categoryName)}`);
+      const data = await res.json();
+      applyHighlights(data.episodes);
+    } catch (err) {
+      console.error('Category fetch failed:', err);
+    }
+  }, []);
+
+  // Handle format selection
+  const handleFormatSelect = useCallback(async (formatName: string | null) => {
+    setActiveFormat(formatName);
+    setActiveCategory(null);
+    setActiveGuest(null);
+    setActiveCompany(null);
+    setSearchQuery('');
+
+    if (!formatName) {
+      clearHighlights();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/format?name=${encodeURIComponent(formatName)}`);
+      const data = await res.json();
+      applyHighlights(data.episodes);
+    } catch (err) {
+      console.error('Format fetch failed:', err);
+    }
+  }, []);
+
+  // Handle guest selection
+  const handleGuestSelect = useCallback(async (guestName: string | null) => {
+    setActiveGuest(guestName);
+    setActiveCompany(null);
+    setActiveCategory(null);
+    setActiveFormat(null);
+    setSearchQuery('');
+
+    if (!guestName) {
+      clearHighlights();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/guest?name=${encodeURIComponent(guestName)}`);
+      const data = await res.json();
+      applyHighlights(data.episodes);
+    } catch (err) {
+      console.error('Guest fetch failed:', err);
+    }
+  }, []);
+
+  // Handle company selection
+  const handleCompanySelect = useCallback(async (companyName: string | null) => {
+    setActiveCompany(companyName);
+    setActiveGuest(null);
+    setActiveCategory(null);
+    setActiveFormat(null);
+    setSearchQuery('');
+
+    if (!companyName) {
+      clearHighlights();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/company?name=${encodeURIComponent(companyName)}`);
+      const data = await res.json();
+      applyHighlights(data.episodes);
+    } catch (err) {
+      console.error('Company fetch failed:', err);
+    }
+  }, []);
+
+  // Handle episode selection (toggle)
+  const handleSelectEpisode = useCallback((episode: EpisodeWithHighlight) => {
+    if (selectedEpisode?.id === episode.id) {
+      setSelectedEpisode(null);
+    } else {
+      setSelectedEpisode(episode);
+    }
+  }, [selectedEpisode]);
+
+  // Close drawer
+  const handleCloseDrawer = useCallback(() => {
+    setSelectedEpisode(null);
+  }, []);
+
+  // Merge episodes with highlight state
+  const episodesWithHighlight: EpisodeWithHighlight[] = episodes.map(ep => ({
+    ...ep,
+    highlighted: highlightedIds.has(ep.id),
+    color: highlightedIds.get(ep.id),
+  }));
+
+  // Calculate excluded episode count
+  const excludedEpisodeIds = new Set<number>();
+  formatCounts.forEach(fc => {
+    if (excludedFormats.has(fc.name)) {
+      fc.episodeIds.forEach(id => excludedEpisodeIds.add(id));
+    }
+  });
+  const excludedCount = excludedEpisodeIds.size;
+
+  const totalEpisodes = episodes.length;
+  const adjustedTotal = totalEpisodes - excludedCount;
+  const baseForPercentage = excludeMode && excludedCount > 0 ? adjustedTotal : totalEpisodes;
+  const percentage = baseForPercentage > 0 ? ((resultCount / baseForPercentage) * 100).toFixed(1) : '0';
+  const hasResults = resultCount > 0 && (searchQuery || activeCategory || activeFormat || activeGuest || activeCompany);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen dashboard-bg flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="loading-grid" style={{ gridTemplateColumns: 'repeat(20, 8px)', gridAutoRows: '8px' }}>
+            {Array.from({ length: 200 }).map((_, i) => (
+              <div
+                key={i}
+                className="loading-cell"
+                style={{ animationDelay: `${(i % 20) * 0.05}s` }}
+              />
+            ))}
+          </div>
+          <p className="text-zinc-500 text-sm font-mono tracking-wider">LOADING EPISODES...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen dashboard-bg flex flex-col overflow-hidden">
+      {/* Header */}
+      <header className="flex-shrink-0 px-8 lg:px-16 xl:px-24 pt-8 pb-4 space-y-5">
+        {/* Title Row */}
+        <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
+          <div className="flex items-baseline gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-violet-500 shadow-[0_0_12px_rgba(139,92,246,0.8),0_0_24px_rgba(139,92,246,0.4)]" />
+              <div className="title-glow-wrapper">
+                <h1 className="text-3xl font-bold title-gradient tracking-tight">
+                  Odd Lots
+                </h1>
+              </div>
+            </div>
+            <span className="text-zinc-400 text-lg font-medium tracking-wide">Episode Explorer</span>
+          </div>
+          <div className="stats-badge text-zinc-400">
+            {excludeMode && excludedCount > 0 ? (
+              <span>
+                <span className="text-amber-400">{adjustedTotal.toLocaleString()}</span>
+                <span className="text-zinc-600"> / {totalEpisodes.toLocaleString()}</span>
+                <span> EPISODES</span>
+              </span>
+            ) : (
+              <span>{totalEpisodes.toLocaleString()} EPISODES</span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Search Row with Results Count */}
+        <div className="flex items-center gap-4 max-w-7xl mx-auto w-full">
+          <SearchBar onSearch={handleSearch} />
+
+          {hasResults && (
+            <div className="result-count flex items-center gap-2 text-sm text-zinc-300 whitespace-nowrap">
+              <div
+                className="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.6)]"
+                style={{ backgroundColor: '#8b5cf6' }}
+              />
+              <span className="text-white font-semibold">{resultCount}</span>
+              <span className="text-zinc-500">{resultCount === 1 ? 'match' : 'matches'}</span>
+              <span className="text-zinc-600">·</span>
+              <span className={excludeMode && excludedCount > 0 ? "text-amber-400 font-medium" : "text-violet-400 font-medium"}>
+                {percentage}%
+              </span>
+              {excludeMode && excludedCount > 0 && (
+                <span className="text-zinc-600 text-xs">(excl. formats)</span>
+              )}
+            </div>
+          )}
+
+          {searchQuery && resultCount === 0 && (
+            <span className="text-sm text-zinc-500">No results</span>
+          )}
         </div>
-      </main>
-    </div>
+
+        {/* Twirl-downs row */}
+        <div className="max-w-7xl mx-auto w-full space-y-2">
+          {/* Topics Twirl-down */}
+          <div>
+            <button
+              onClick={() => setTopicsExpanded(!topicsExpanded)}
+              className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors group"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${topicsExpanded ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="font-mono text-xs uppercase tracking-wider">Topics</span>
+              {activeCategory && <span className="text-zinc-600 text-xs">(1 selected)</span>}
+            </button>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-out ${
+                topicsExpanded ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <CategoryPills
+                activeCategory={activeCategory}
+                onCategorySelect={handleCategorySelect}
+              />
+            </div>
+          </div>
+
+          {/* Formats Twirl-down */}
+          <div>
+            <button
+              onClick={() => setFormatsExpanded(!formatsExpanded)}
+              className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors group"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${formatsExpanded ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="font-mono text-xs uppercase tracking-wider">Formats</span>
+              {activeFormat && <span className="text-zinc-600 text-xs">(1 selected)</span>}
+            </button>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-out ${
+                formatsExpanded ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <FormatPills
+                activeFormat={activeFormat}
+                onFormatSelect={handleFormatSelect}
+                excludedFormats={excludedFormats}
+                onExcludedFormatsChange={setExcludedFormats}
+                excludeMode={excludeMode}
+                onExcludeModeChange={setExcludeMode}
+              />
+            </div>
+          </div>
+
+          {/* Stats Twirl-down */}
+          <div>
+            <button
+              onClick={() => setStatsExpanded(!statsExpanded)}
+              className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors group"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${statsExpanded ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="font-mono text-xs uppercase tracking-wider">Stats</span>
+              {(activeGuest || activeCompany) && <span className="text-zinc-600 text-xs">(1 selected)</span>}
+            </button>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-out ${
+                statsExpanded ? 'max-h-[480px] opacity-100 mt-3' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <StatsPanel
+                isExpanded={statsExpanded}
+                activeGuest={activeGuest}
+                activeCompany={activeCompany}
+                onGuestSelect={handleGuestSelect}
+                onCompanySelect={handleCompanySelect}
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Grid Container */}
+      <div className="flex-1 px-8 lg:px-16 xl:px-24 pb-6 min-h-0 flex flex-col justify-start">
+        <div className="max-w-7xl mx-auto w-full corner-accent p-6 rounded-lg bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 relative z-10" style={{ height: 'fit-content' }}>
+          <EpisodeGrid
+            episodes={episodesWithHighlight}
+            selectedEpisodeId={selectedEpisode?.id}
+            onSelectEpisode={handleSelectEpisode}
+          />
+        </div>
+
+        {/* Episode Drawer */}
+        <div className="max-w-7xl mx-auto w-full flex-shrink-0">
+          <EpisodeDrawer
+            episode={selectedEpisode}
+            onClose={handleCloseDrawer}
+          />
+        </div>
+      </div>
+    </main>
   );
 }
