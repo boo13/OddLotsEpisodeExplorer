@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/*': [
       './data/**/*',
-      './node_modules/sql.js/dist/sql-wasm.wasm',
     ],
   },
 };

@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 *.db
+!data/odd_lots_episodes.db
 *.sqlite
 
 # editor

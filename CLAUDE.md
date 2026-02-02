@@ -17,9 +17,11 @@ Interactive visualization dashboard for ~1,133 Bloomberg Odd Lots podcast episod
 
 **Next.js 16 + React 19** app using the App Router. Single-page client-side app (`'use client'` page) with server-side API routes.
 
-**Data layer**: SQLite database via `better-sqlite3` in readonly mode. The DB file lives at `data/odd_lots_episodes.db` (inside this repo). It has an `episodes` table with cleaned columns (`guest_clean`, `guest_title_clean`, `guest_company_clean`) that are COALESCEd with raw columns in all queries. FTS5 full-text search is available via `episodes_fts`.
+**Data layer**: SQLite database via `sql.js` (pure JS/WASM, no native dependencies) in readonly mode. The DB file lives at `data/odd_lots_episodes.db` (inside this repo). It has an `episodes` table with cleaned columns (`guest_clean`, `guest_title_clean`, `guest_company_clean`) that are COALESCEd with raw columns in all queries. FTS5 full-text search is available via `episodes_fts`. Because sql.js requires async initialization, each API route calls `await initDb()` before using the sync `getDb()` accessor. The db instance is cached after first init.
 
-**API routes** (`src/app/api/`): Thin wrappers around query functions — `episodes`, `search`, `category`, `format`, `guest`, `company`, `stats`, `format-counts`. All queries are in `src/lib/queries.ts`.
+**API routes** (`src/app/api/`): Thin wrappers around query functions — `episodes`, `search`, `category`, `format`, `guest`, `company`, `stats`, `format-counts`. Each route calls `await initDb()` before invoking query functions. All queries are in `src/lib/queries.ts`.
+
+**Deployment**: Configured for Vercel serverless. `next.config.ts` uses `outputFileTracingIncludes` to bundle the `.db` file and `sql-wasm.wasm` into serverless functions. The database is read-only and bundled into the deployment — data updates require a redeploy.
 
 **Frontend**: All state lives in `src/app/page.tsx` (the single page component). Filtering by category/format/guest/company/search all follow the same pattern: fetch matching episodes from API, then highlight those IDs on the grid with gradient colors.
 

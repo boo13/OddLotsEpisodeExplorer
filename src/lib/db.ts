@@ -27,7 +27,7 @@ export async function initDb(): Promise<CompatDb> {
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
-    const wasmPath = path.join(process.cwd(), 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm');
+    const wasmPath = path.join(process.cwd(), 'data', 'sql-wasm.wasm');
     const wasmBinary = fs.readFileSync(wasmPath);
     const SQL = await initSqlJs({ wasmBinary });
     const dbPath = path.join(process.cwd(), 'data', 'odd_lots_episodes.db');
