@@ -4,6 +4,8 @@
 
 An interactive visualization dashboard for exploring 1,133 episodes of the Odd Lots podcast (2015-2026).
 
+Try it here: [https://odd-lots-episode-explorer.vercel.app/](https://odd-lots-episode-explorer.vercel.app/)
+
 ## Features
 
 - **Full-text search** across episode titles, descriptions, and guest information
