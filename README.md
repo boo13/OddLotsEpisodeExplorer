@@ -1,8 +1,6 @@
 # Odd Lots Episode Dashboard
 
-<div align="center">
-  <video src="public/OddLotsEpExplorerVideo_GithubPreview.mp4" width="100%" />
-</div>
+![Odd Lots Episode Dashboard Preview](public/OddLotsEpExplorerVideo_GithubPreview.gif)
 
 An interactive visualization dashboard for exploring 1,133 episodes of the Odd Lots podcast (2015-2026).
 
