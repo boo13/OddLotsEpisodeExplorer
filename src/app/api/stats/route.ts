@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { initDb } from '@/lib/db';
 import {
   getStatsSummary,
   getMonthlyTimeline,
@@ -12,6 +13,7 @@ import {
 
 export async function GET() {
   try {
+    await initDb();
     const summary = getStatsSummary();
     const timeline = getMonthlyTimeline();
     const topGuests = getTopGuests(10);

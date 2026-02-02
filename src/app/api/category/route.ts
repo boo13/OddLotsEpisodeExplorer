@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchByCategory } from '@/lib/queries';
 import { CATEGORIES } from '@/lib/categories';
+import { initDb } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    await initDb();
     const episodes = searchByCategory(category.keywords);
     return NextResponse.json({ episodes, color: category.color });
   } catch (error) {

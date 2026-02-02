@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getFormatCounts } from '@/lib/queries';
+import { initDb } from '@/lib/db';
 
 export async function GET() {
   try {
+    await initDb();
     const counts = getFormatCounts();
     return NextResponse.json(counts);
   } catch (error) {
