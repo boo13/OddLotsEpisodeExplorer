@@ -110,7 +110,7 @@ function AreaChart({ data }: { data: MonthlyData[] }) {
   }).filter((_, i) => i % 2 === 0 || years.length <= 6);
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.6" />
@@ -169,7 +169,7 @@ function LineChart({ data }: { data: MonthlyData[] }) {
   }).filter((_, i) => i % 2 === 0 || years.length <= 6);
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
       <defs>
         <filter id="cyanGlow">
           <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -207,7 +207,7 @@ function VerticalBarChart({ data }: { data: YearlyData[] }) {
   const gap = (chartWidth / data.length) * 0.3;
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="barGradientV" x1="0" y1="1" x2="0" y2="0">
           <stop offset="0%" stopColor="#8b5cf6" />
@@ -274,7 +274,7 @@ function DurationChart({ data }: { data: DurationBucket[] }) {
   const gap = (chartWidth / data.length) * 0.25;
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="durationGradient" x1="0" y1="1" x2="0" y2="0">
           <stop offset="0%" stopColor="#22d3ee" />
@@ -547,7 +547,8 @@ export function StatsPanel({
       });
 
     return () => { cancelled = true; };
-  }, [isExpanded, fetchState]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchState intentionally omitted to prevent race condition
+  }, [isExpanded]);
 
   if (fetchState === 'loading' || fetchState === 'idle' || !data) {
     return <LoadingSkeleton />;
