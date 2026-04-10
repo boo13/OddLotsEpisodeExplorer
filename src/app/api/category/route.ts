@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   try {
     await initDb();
-    const episodes = searchByCategory(category.keywords);
+    const episodes = searchByCategory([category.name]);
     return NextResponse.json({ episodes, color: category.color });
   } catch (error) {
     console.error('Error fetching category episodes:', error);

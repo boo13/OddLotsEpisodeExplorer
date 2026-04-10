@@ -1,102 +1,41 @@
-# Odd Lots Episode Dashboard
+# Undisclosed Case Dashboard
 
-![Odd Lots Episode Dashboard Preview](public/OddLotsEpExplorerVideo_GithubPreview.gif)
+An interactive dashboard for exploring Undisclosed case entries with search, season filters, format filters, and a dense grid view.
 
-An interactive visualization dashboard for exploring 1,133 episodes of the Odd Lots podcast (2015-2026).
+## POC scope
 
-Try it here: [https://odd-lots-episode-explorer.vercel.app/](https://odd-lots-episode-explorer.vercel.app/)
+- Uses a curated Undisclosed data set derived from the official cases index
+- Keeps the existing grid-and-drawer interaction model
+- Focuses on seasons and case types rather than the old dashboard topics and guest/company stats
 
-## Features
+## Stack
 
-- **Full-text search** across episode titles, descriptions, and guest information
-- **Filter by category** (Markets, Fed/Monetary Policy, China, Crypto, etc.)
-- **Filter by format** (Interview, Deep Dive, Lots More, etc.)
-- **Guest and company filtering** with autocomplete
-- **Statistics panel** with top guests, companies, and episode trends
-- **Responsive design** with dark mode
+- Next.js 16
+- React 19
+- Tailwind CSS 4
+- Radix UI
 
-## Tech Stack
+## Getting started
 
-- **Framework**: Next.js 16 with App Router
-- **Styling**: Tailwind CSS 4
-- **Database**: SQLite (sql.js / WASM)
-- **UI Components**: Radix UI, Lucide icons
-- **Fonts**: Outfit, JetBrains Mono
+```bash
+npm install
+npm run dev
+```
 
-## Prerequisites
-
-- Node.js 18+
-- The SQLite database file (`odd_lots_episodes.db`) in the `data/` directory
-
-## Getting Started
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Ensure the database exists at `data/odd_lots_episodes.db`
-
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000)
+Open `http://localhost:3000`.
 
 ## Scripts
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start the dev server
 - `npm run build` - Build for production
-- `npm run start` - Start production server
+- `npm run start` - Start the production server
 - `npm run lint` - Run ESLint
 
-## Project Structure
+## Data
 
-```
-src/
-├── app/
-│   ├── api/          # API routes (episodes, search, stats, etc.)
-│   ├── layout.tsx    # Root layout
-│   ├── page.tsx      # Main dashboard page
-│   └── globals.css   # Global styles
-├── components/       # React components
-│   ├── CategoryPills.tsx
-│   ├── EpisodeDrawer.tsx
-│   ├── EpisodeGrid.tsx
-│   ├── EpisodeRect.tsx
-│   ├── FormatPills.tsx
-│   ├── SearchBar.tsx
-│   ├── StatsPanel.tsx
-│   └── ui/           # Base UI components
-├── lib/
-│   ├── db.ts         # Database connection (sql.js)
-│   ├── categories.ts # Category definitions
-│   ├── queries.ts    # SQL query functions
-│   └── utils.ts      # Utility functions
-└── types/
-    └── episode.ts    # TypeScript interfaces
-```
+The app reads from `src/lib/undisclosedData.ts`, which seeds the dashboard from the official Undisclosed cases index at `https://www.undisclosedpod.com/seasons-cases`.
 
-## Database Schema
+## Notes
 
-The SQLite database contains episode data with the following fields:
-- `title`, `description`, `pub_date`, `duration_seconds`
-- `guest`, `guest_title`, `guest_company` (cleaned versions available)
-- Full-text search index on key fields
-
-## Updating Episodes
-
-The `data/update_episodes.py` script incrementally updates the database with new episodes from the Omny RSS feed. It inserts new episodes, runs LLM-based guest extraction, backfills repeat guests, and rebuilds the FTS index.
-
-```bash
-cd data
-python update_episodes.py            # Full update
-python update_episodes.py --dry-run  # Preview without DB changes
-```
-
-Requires a Python venv with `data/requirements.txt` dependencies and an `ANTHROPIC_API_KEY` in `.env` at the project root (used for LLM guest extraction). After updating, redeploy to reflect changes.
-
-## License
-
-MIT
+- The dashboard is intentionally minimal for the first Undisclosed proof of concept.
+- The next pass can add richer case metadata, topics, and stats once the Undisclosed-specific data model is settled.

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   try {
     await initDb();
-    const episodes = searchByFormat(format.keywords, format.matchField);
+    const episodes = searchByFormat([format.name], 'title_or_description');
     return NextResponse.json({ episodes, color: format.color });
   } catch (error) {
     console.error('Error fetching format episodes:', error);

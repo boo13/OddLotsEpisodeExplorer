@@ -1,118 +1,52 @@
 export interface Category {
   name: string;
-  keywords: string[];
   color: string;
 }
 
 export const CATEGORIES: Category[] = [
   {
-    name: "Fed/Central Banks",
-    keywords: ["Federal Reserve", "FOMC", "Jerome Powell", "central bank", "monetary policy"],
+    name: "Season 7",
     color: "#ef4444"
   },
   {
-    name: "China",
-    keywords: ["China", "Chinese", "Beijing", "Xi Jinping"],
+    name: "Season 6",
     color: "#f97316"
   },
   {
-    name: "Bonds/Treasuries",
-    keywords: ["Treasury", "treasuries", "bond market", "yield curve", "fixed income"],
+    name: "Season 5",
     color: "#eab308"
   },
   {
-    name: "Crypto",
-    keywords: ["crypto", "bitcoin", "ethereum", "blockchain", "stablecoin", "DeFi"],
+    name: "Season 4",
     color: "#22c55e"
   },
   {
-    name: "Housing",
-    keywords: ["housing", "real estate", "mortgage", "homebuyer", "rental"],
+    name: "Season 3",
     color: "#06b6d4"
   },
   {
-    name: "Inflation",
-    keywords: ["inflation", "CPI", "deflation", "disinflation", "price stability"],
+    name: "Season 2",
     color: "#3b82f6"
   },
   {
-    name: "Energy/Oil",
-    keywords: ["oil price", "OPEC", "crude", "petroleum", "natural gas", "renewable energy"],
+    name: "Season 1",
     color: "#8b5cf6"
-  },
-  {
-    name: "Tech/AI",
-    keywords: ["artificial intelligence", "Nvidia", "semiconductor", "ChatGPT", "machine learning"],
-    color: "#ec4899"
-  },
-  {
-    name: "Supply Chain",
-    keywords: ["supply chain", "shipping", "logistics", "freight", "container"],
-    color: "#f43f5e"
-  },
-  {
-    name: "Russia/Ukraine",
-    keywords: ["Russia", "Ukraine", "Putin", "Kyiv", "Moscow"],
-    color: "#a855f7"
-  },
-  {
-    name: "Banking",
-    keywords: ["JPMorgan", "Goldman Sachs", "Morgan Stanley", "SVB", "Silicon Valley Bank", "bank failure"],
-    color: "#14b8a6"
-  },
-  {
-    name: "Labor/Jobs",
-    keywords: ["labor market", "employment", "unemployment", "wage growth", "job market"],
-    color: "#f59e0b"
-  },
-  {
-    name: "Trade/Tariffs",
-    keywords: ["tariff", "trade war", "protectionism", "WTO"],
-    color: "#84cc16"
-  },
-  {
-    name: "Private Credit",
-    keywords: ["private credit", "direct lending", "private debt", "Blackstone Credit"],
-    color: "#0ea5e9"
-  },
-  {
-    name: "ETFs/Investing",
-    keywords: ["ETF", "index fund", "passive investing", "Vanguard"],
-    color: "#6366f1"
   }
 ];
 
 export interface Format {
   name: string;
-  keywords: string[];
   color: string;
-  matchField: 'title' | 'title_or_description';
 }
 
 export const FORMATS: Format[] = [
   {
-    name: "Lots More",
-    keywords: ["Lots More"],
+    name: "Main case",
     color: "#a78bfa",
-    matchField: 'title',
   },
   {
-    name: "Sponsored Content",
-    keywords: ["Sponsored Content"],
-    color: "#f59e0b",
-    matchField: 'title',
-  },
-  {
-    name: "Cross-Promotion",
-    keywords: ["Introducing:"],
-    color: "#38bdf8",
-    matchField: 'title',
-  },
-  {
-    name: "Listener Questions",
-    keywords: [" AMA ", "AMA Episode", "Answer All Your Questions", "Answer Your Questions", "Listener Questions", "Answer Listener"],
+    name: "Follow-up / revisit",
     color: "#34d399",
-    matchField: 'title',
   },
 ];
 

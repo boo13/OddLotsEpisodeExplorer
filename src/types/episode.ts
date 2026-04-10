@@ -1,6 +1,9 @@
 export interface Episode {
   id: number;
   title: string;
+  season: string | null;
+  format: string | null;
+  collection: string | null;
   guest: string | null;
   description: string | null;
   pub_date: string | null;

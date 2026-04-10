@@ -1,33 +1,34 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This repository is now an Undisclosed dashboard POC.
 
-## Project Overview
+## Overview
 
-Interactive visualization dashboard for ~1,133 Bloomberg Odd Lots podcast episodes (2015-2026). Displays all episodes as a dense grid of colored rectangles with search, category filtering, format filtering, and stats panels.
+The app is a thin Next.js shell around a curated Undisclosed case dataset in `src/lib/undisclosedData.ts`. The UI keeps the dense grid, search bar, filter pills, stats panel, and drawer pattern, but the semantics are now case-oriented instead of the prior podcast explorer.
+
+## Data model
+
+- `src/lib/queries.ts` filters and summarizes the in-memory case data.
+- `src/lib/db.ts` is a no-op compatibility shim.
+- The dashboard currently tracks:
+  - season
+  - format
+  - collection
+  - source link
+
+## Key flows
+
+- `src/app/page.tsx` loads the full dataset, applies search/filter highlights, and renders the main dashboard.
+- `src/components/StatsPanel.tsx` fetches `/api/stats` and shows the simplified Undisclosed summary.
+- `src/app/api/` routes still exist for compatibility, but they now read from the in-memory Undisclosed data.
 
 ## Commands
 
-- `npm run dev` — Start dev server
-- `npm run build` — Production build
-- `npm run lint` — ESLint
-- No test framework is configured.
+- `npm run dev`
+- `npm run build`
+- `npm run lint`
 
-## Architecture
+## Notes
 
-**Next.js 16 + React 19** app using the App Router. Single-page client-side app (`'use client'` page) with server-side API routes.
-
-**Data layer**: SQLite database via `sql.js` (pure JS/WASM, no native dependencies) in readonly mode. The DB file lives at `data/odd_lots_episodes.db` (inside this repo). It has an `episodes` table with cleaned columns (`guest_clean`, `guest_title_clean`, `guest_company_clean`) that are COALESCEd with raw columns in all queries. FTS5 full-text search is available via `episodes_fts`. Because sql.js requires async initialization, each API route calls `await initDb()` before using the sync `getDb()` accessor. The db instance is cached after first init.
-
-**API routes** (`src/app/api/`): Thin wrappers around query functions — `episodes`, `search`, `category`, `format`, `guest`, `company`, `stats`, `format-counts`. Each route calls `await initDb()` before invoking query functions. All queries are in `src/lib/queries.ts`.
-
-**Deployment**: Configured for Vercel serverless. `next.config.ts` uses `outputFileTracingIncludes` to bundle the `.db` file and `sql-wasm.wasm` into serverless functions. The database is read-only and bundled into the deployment — data updates require a redeploy.
-
-**Frontend**: All state lives in `src/app/page.tsx` (the single page component). Filtering by category/format/guest/company/search all follow the same pattern: fetch matching episodes from API, then highlight those IDs on the grid with gradient colors.
-
-**Key data concepts**:
-- **Categories** (`src/lib/categories.ts`): Topic-based keyword groups (Fed, China, Crypto, etc.) matched via SQL LIKE queries
-- **Formats**: Episode types (Lots More, Sponsored Content, Cross-Promotion, Listener Questions) matched by title keywords
-- **Exclude mode**: Formats can be excluded from percentage calculations via `excludedFormats` state
-
-**UI components** (`src/components/`): shadcn/ui (new-york style) with Tailwind v4. `EpisodeGrid` renders the dense rectangle grid, `EpisodeRect` is each cell, `EpisodeDrawer` shows episode details on click.
+- The first milestone is a proof of concept, not the final Undisclosed taxonomy.
+- Keep future changes aligned with the official Undisclosed source of truth.

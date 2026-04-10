@@ -15,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Odd Lots Episode Dashboard",
-  description: "Interactive visualization of 1,133 Odd Lots podcast episodes",
+  title: "Undisclosed Case Dashboard",
+  description: "Interactive visualization of Undisclosed podcast case entries",
 };
 
 export default function RootLayout({

@@ -11,18 +11,17 @@ interface EpisodeGridProps {
   onSelectEpisode?: (episode: EpisodeWithHighlight) => void;
 }
 
-function getYear(pubDate: string | null): string | null {
-  if (!pubDate) return null;
-  return pubDate.slice(0, 4);
+function getSeason(episode: EpisodeWithHighlight): string | null {
+  return episode.season ?? null;
 }
 
 export function EpisodeGrid({ episodes, selectedEpisodeId, onSelectEpisode }: EpisodeGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [gridConfig, setGridConfig] = useState({ columns: 50, cellSize: 14, gap: 2 });
-  const [hoveredYear, setHoveredYear] = useState<string | null>(null);
+  const [hoveredSeason, setHoveredSeason] = useState<string | null>(null);
 
-  const handleHoverEpisode = useCallback((year: string | null) => {
-    setHoveredYear(year);
+  const handleHoverEpisode = useCallback((season: string | null) => {
+    setHoveredSeason(season);
   }, []);
 
   useEffect(() => {
@@ -110,7 +109,7 @@ export function EpisodeGrid({ episodes, selectedEpisodeId, onSelectEpisode }: Ep
               episode={episode}
               cellSize={gridConfig.cellSize}
               isSelected={selectedEpisodeId === episode.id}
-              isYearHighlighted={hoveredYear !== null && getYear(episode.pub_date) === hoveredYear}
+              isSeasonHighlighted={hoveredSeason !== null && getSeason(episode) === hoveredSeason}
               onSelect={onSelectEpisode}
               onHover={handleHoverEpisode}
             />

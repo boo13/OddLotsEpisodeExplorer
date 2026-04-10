@@ -45,7 +45,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
 
         <input
           type="text"
-          placeholder="Search guests, topics, companies..."
+          placeholder="Search cases, seasons, or follow-ups..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}

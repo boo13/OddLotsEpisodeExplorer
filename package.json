@@ -1,7 +1,7 @@
 {
-  "name": "odd-lots-dashboard",
+  "name": "undisclosed-dashboard",
   "version": "1.0.0",
-  "description": "Interactive visualization dashboard for 1,133 Odd Lots podcast episodes (2015-2026)",
+  "description": "Interactive visualization dashboard for Undisclosed podcast case entries",
   "private": true,
   "author": "Randy",
   "license": "MIT",

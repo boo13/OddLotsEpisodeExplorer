@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const name = searchParams.get('name');
 
   if (!name) {
-    return NextResponse.json({ error: 'Company name required' }, { status: 400 });
+    return NextResponse.json({ error: 'Case type required' }, { status: 400 });
   }
 
   try {

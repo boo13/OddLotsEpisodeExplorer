@@ -26,8 +26,6 @@ export default function Home() {
   const [topicsExpanded, setTopicsExpanded] = useState(false);
   const [formatsExpanded, setFormatsExpanded] = useState(false);
   const [statsExpanded, setStatsExpanded] = useState(false);
-  const [activeGuest, setActiveGuest] = useState<string | null>(null);
-  const [activeCompany, setActiveCompany] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [excludedFormats, setExcludedFormats] = useState<Set<string>>(new Set());
@@ -78,8 +76,6 @@ export default function Home() {
     setSearchQuery(query);
     setActiveCategory(null);
     setActiveFormat(null);
-    setActiveGuest(null);
-    setActiveCompany(null);
 
     if (!query.trim()) {
       clearHighlights();
@@ -99,8 +95,6 @@ export default function Home() {
   const handleCategorySelect = useCallback(async (categoryName: string | null) => {
     setActiveCategory(categoryName);
     setActiveFormat(null);
-    setActiveGuest(null);
-    setActiveCompany(null);
     setSearchQuery('');
 
     if (!categoryName) {
@@ -121,8 +115,6 @@ export default function Home() {
   const handleFormatSelect = useCallback(async (formatName: string | null) => {
     setActiveFormat(formatName);
     setActiveCategory(null);
-    setActiveGuest(null);
-    setActiveCompany(null);
     setSearchQuery('');
 
     if (!formatName) {
@@ -136,50 +128,6 @@ export default function Home() {
       applyHighlights(data.episodes);
     } catch (err) {
       console.error('Format fetch failed:', err);
-    }
-  }, []);
-
-  // Handle guest selection
-  const handleGuestSelect = useCallback(async (guestName: string | null) => {
-    setActiveGuest(guestName);
-    setActiveCompany(null);
-    setActiveCategory(null);
-    setActiveFormat(null);
-    setSearchQuery('');
-
-    if (!guestName) {
-      clearHighlights();
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/guest?name=${encodeURIComponent(guestName)}`);
-      const data = await res.json();
-      applyHighlights(data.episodes);
-    } catch (err) {
-      console.error('Guest fetch failed:', err);
-    }
-  }, []);
-
-  // Handle company selection
-  const handleCompanySelect = useCallback(async (companyName: string | null) => {
-    setActiveCompany(companyName);
-    setActiveGuest(null);
-    setActiveCategory(null);
-    setActiveFormat(null);
-    setSearchQuery('');
-
-    if (!companyName) {
-      clearHighlights();
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/company?name=${encodeURIComponent(companyName)}`);
-      const data = await res.json();
-      applyHighlights(data.episodes);
-    } catch (err) {
-      console.error('Company fetch failed:', err);
     }
   }, []);
 
@@ -217,7 +165,7 @@ export default function Home() {
   const adjustedTotal = totalEpisodes - excludedCount;
   const baseForPercentage = excludeMode && excludedCount > 0 ? adjustedTotal : totalEpisodes;
   const percentage = baseForPercentage > 0 ? ((resultCount / baseForPercentage) * 100).toFixed(1) : '0';
-  const hasResults = resultCount > 0 && (searchQuery || activeCategory || activeFormat || activeGuest || activeCompany);
+  const hasResults = resultCount > 0 && (searchQuery || activeCategory || activeFormat);
 
   if (loading) {
     return (
@@ -232,7 +180,7 @@ export default function Home() {
               />
             ))}
           </div>
-          <p className="text-zinc-500 text-sm font-mono tracking-wider">LOADING EPISODES...</p>
+          <p className="text-zinc-500 text-sm font-mono tracking-wider">LOADING CASES...</p>
         </div>
       </div>
     );
@@ -249,21 +197,21 @@ export default function Home() {
               <div className="w-2.5 h-2.5 rounded-full bg-violet-500 shadow-[0_0_12px_rgba(139,92,246,0.8),0_0_24px_rgba(139,92,246,0.4)]" />
               <div className="title-glow-wrapper">
                 <h1 className="text-3xl font-bold title-gradient tracking-tight">
-                  Odd Lots
+                  Undisclosed
                 </h1>
               </div>
             </div>
-            <span className="text-zinc-400 text-lg font-medium tracking-wide">Episode Explorer</span>
+            <span className="text-zinc-400 text-lg font-medium tracking-wide">Case Dashboard</span>
           </div>
           <div className="stats-badge text-zinc-400">
             {excludeMode && excludedCount > 0 ? (
               <span>
                 <span className="text-amber-400">{adjustedTotal.toLocaleString()}</span>
                 <span className="text-zinc-600"> / {totalEpisodes.toLocaleString()}</span>
-                <span> EPISODES</span>
+                <span> CASES</span>
               </span>
             ) : (
-              <span>{totalEpisodes.toLocaleString()} EPISODES</span>
+              <span>{totalEpisodes.toLocaleString()} CASES</span>
             )}
           </div>
         </div>
@@ -297,7 +245,7 @@ export default function Home() {
 
         {/* Twirl-downs row */}
         <div className="max-w-7xl mx-auto w-full space-y-2">
-          {/* Topics Twirl-down */}
+          {/* Seasons Twirl-down */}
           <div>
             <button
               onClick={() => setTopicsExpanded(!topicsExpanded)}
@@ -311,7 +259,7 @@ export default function Home() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="font-mono text-xs uppercase tracking-wider">Topics</span>
+              <span className="font-mono text-xs uppercase tracking-wider">Seasons</span>
               {activeCategory && <span className="text-zinc-600 text-xs">(1 selected)</span>}
             </button>
 
@@ -327,7 +275,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Formats Twirl-down */}
+          {/* Case Types Twirl-down */}
           <div>
             <button
               onClick={() => setFormatsExpanded(!formatsExpanded)}
@@ -341,7 +289,7 @@ export default function Home() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="font-mono text-xs uppercase tracking-wider">Formats</span>
+              <span className="font-mono text-xs uppercase tracking-wider">Case Types</span>
               {activeFormat && <span className="text-zinc-600 text-xs">(1 selected)</span>}
             </button>
 
@@ -376,7 +324,6 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
               <span className="font-mono text-xs uppercase tracking-wider">Stats</span>
-              {(activeGuest || activeCompany) && <span className="text-zinc-600 text-xs">(1 selected)</span>}
             </button>
 
             <div
@@ -384,13 +331,7 @@ export default function Home() {
                 statsExpanded ? 'max-h-[480px] opacity-100 mt-3' : 'max-h-0 opacity-0'
               }`}
             >
-              <StatsPanel
-                isExpanded={statsExpanded}
-                activeGuest={activeGuest}
-                activeCompany={activeCompany}
-                onGuestSelect={handleGuestSelect}
-                onCompanySelect={handleCompanySelect}
-              />
+              <StatsPanel isExpanded={statsExpanded} />
             </div>
           </div>
         </div>

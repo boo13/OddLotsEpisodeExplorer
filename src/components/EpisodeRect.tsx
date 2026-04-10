@@ -12,9 +12,9 @@ interface EpisodeRectProps {
   episode: EpisodeWithHighlight;
   cellSize: number;
   isSelected?: boolean;
-  isYearHighlighted?: boolean;
+  isSeasonHighlighted?: boolean;
   onSelect?: (episode: EpisodeWithHighlight) => void;
-  onHover?: (year: string | null) => void;
+  onHover?: (season: string | null) => void;
 }
 
 function stripHtml(html: string | null): string {
@@ -27,22 +27,11 @@ function truncate(text: string, maxLength: number): string {
   return text.slice(0, maxLength) + '...';
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+function getSeason(episode: EpisodeWithHighlight): string | null {
+  return episode.season ?? null;
 }
 
-function getYear(pubDate: string | null): string | null {
-  if (!pubDate) return null;
-  return pubDate.slice(0, 4);
-}
-
-export function EpisodeRect({ episode, cellSize, isSelected, isYearHighlighted, onSelect, onHover }: EpisodeRectProps) {
+export function EpisodeRect({ episode, cellSize, isSelected, isSeasonHighlighted, onSelect, onHover }: EpisodeRectProps) {
   const description = truncate(stripHtml(episode.description), 180);
   const isHighlighted = episode.highlighted && episode.color;
 
@@ -51,8 +40,8 @@ export function EpisodeRect({ episode, cellSize, isSelected, isYearHighlighted, 
   };
 
   const handleMouseEnter = useCallback(() => {
-    onHover?.(getYear(episode.pub_date));
-  }, [episode.pub_date, onHover]);
+    onHover?.(getSeason(episode));
+  }, [episode, onHover]);
 
   const handleMouseLeave = useCallback(() => {
     onHover?.(null);
@@ -62,7 +51,7 @@ export function EpisodeRect({ episode, cellSize, isSelected, isYearHighlighted, 
   let bgColor = '#27272a';
   if (isHighlighted) {
     bgColor = episode.color!;
-  } else if (isYearHighlighted) {
+  } else if (isSeasonHighlighted) {
     bgColor = '#3f3f46';
   }
 
@@ -73,7 +62,7 @@ export function EpisodeRect({ episode, cellSize, isSelected, isYearHighlighted, 
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className={`episode-cell ${isHighlighted ? 'highlighted' : ''} ${isSelected ? 'selected' : ''} ${isYearHighlighted && !isHighlighted ? 'year-glow' : ''}`}
+          className={`episode-cell ${isHighlighted ? 'highlighted' : ''} ${isSelected ? 'selected' : ''} ${isSeasonHighlighted && !isHighlighted ? 'year-glow' : ''}`}
           style={{
             width: cellSize,
             height: cellSize,
@@ -94,27 +83,24 @@ export function EpisodeRect({ episode, cellSize, isSelected, isYearHighlighted, 
             {episode.title}
           </h3>
 
-          {/* Guest Info */}
-          {episode.guest && (
+          {/* Season */}
+          {episode.season && (
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Guest</span>
+              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Season</span>
               <span className="text-xs text-zinc-300">
-                {episode.guest}
-                {episode.guest_title && episode.guest_title !== 'N/A' && (
-                  <span className="text-zinc-500">, {episode.guest_title}</span>
-                )}
-                {episode.guest_company && episode.guest_company !== 'N/A' && (
-                  <span className="text-zinc-500"> at {episode.guest_company}</span>
+                {episode.season}
+                {episode.format && (
+                  <span className="text-zinc-500"> · {episode.format}</span>
                 )}
               </span>
             </div>
           )}
 
-          {/* Date */}
-          {episode.pub_date && (
+          {/* Collection */}
+          {episode.collection && (
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Date</span>
-              <span className="text-xs text-zinc-400 font-mono">{formatDate(episode.pub_date)}</span>
+              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Collection</span>
+              <span className="text-xs text-zinc-400 font-mono">{episode.collection}</span>
             </div>
           )}
 
