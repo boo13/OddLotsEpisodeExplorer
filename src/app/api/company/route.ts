@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchByCompany } from '@/lib/queries';
-import { initDb } from '@/lib/db';
+import { getAllEpisodes } from '@/lib/queries';
 
+// Search by case_name (repurposed from the old "company" route)
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const name = searchParams.get('name');
+  const name = request.nextUrl.searchParams.get('name');
 
   if (!name) {
-    return NextResponse.json({ error: 'Case type required' }, { status: 400 });
+    return NextResponse.json({ error: 'Case name required' }, { status: 400 });
   }
 
-  try {
-    await initDb();
-    const episodes = searchByCompany(name);
-    return NextResponse.json({ episodes, name });
-  } catch (error) {
-    console.error('Company search error:', error);
-    return NextResponse.json({ error: 'Search failed' }, { status: 500 });
-  }
+  const q = name.toLowerCase();
+  const episodes = getAllEpisodes().filter(ep =>
+    ep.case_name?.toLowerCase().includes(q)
+  );
+
+  return NextResponse.json({ episodes, name });
 }

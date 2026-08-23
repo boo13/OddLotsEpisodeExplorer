@@ -6,6 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getFormatColor } from '@/lib/categories';
 import type { EpisodeWithHighlight } from '@/types/episode';
 
 interface EpisodeRectProps {
@@ -27,27 +28,15 @@ function truncate(text: string, maxLength: number): string {
   return text.slice(0, maxLength) + '...';
 }
 
-function getSeason(episode: EpisodeWithHighlight): string | null {
-  return episode.season ?? null;
-}
-
 export function EpisodeRect({ episode, cellSize, isSelected, isSeasonHighlighted, onSelect, onHover }: EpisodeRectProps) {
   const description = truncate(stripHtml(episode.description), 180);
   const isHighlighted = episode.highlighted && episode.color;
+  const formatColor = getFormatColor(episode.format);
 
-  const handleClick = () => {
-    onSelect?.(episode);
-  };
+  const handleClick = () => onSelect?.(episode);
+  const handleMouseEnter = useCallback(() => onHover?.(episode.season), [episode, onHover]);
+  const handleMouseLeave = useCallback(() => onHover?.(null), [onHover]);
 
-  const handleMouseEnter = useCallback(() => {
-    onHover?.(getSeason(episode));
-  }, [episode, onHover]);
-
-  const handleMouseLeave = useCallback(() => {
-    onHover?.(null);
-  }, [onHover]);
-
-  // Determine background color
   let bgColor = '#27272a';
   if (isHighlighted) {
     bgColor = episode.color!;
@@ -78,40 +67,49 @@ export function EpisodeRect({ episode, cellSize, isSelected, isSeasonHighlighted
         className="tooltip-content max-w-sm bg-zinc-900/95 text-white p-4 rounded-lg z-[200]"
       >
         <div className="space-y-2">
-          {/* Title */}
           <h3 className="font-semibold text-sm leading-tight text-white">
             {episode.title}
           </h3>
 
-          {/* Season */}
-          {episode.season && (
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Season</span>
-              <span className="text-xs text-zinc-300">
-                {episode.season}
-                {episode.format && (
-                  <span className="text-zinc-500"> · {episode.format}</span>
-                )}
-              </span>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {/* Format badge */}
+            <span
+              className="text-[10px] uppercase tracking-wider font-mono px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: `${formatColor}20`, color: formatColor, border: `1px solid ${formatColor}40` }}
+            >
+              {episode.format}
+            </span>
 
-          {/* Collection */}
-          {episode.collection && (
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Collection</span>
-              <span className="text-xs text-zinc-400 font-mono">{episode.collection}</span>
-            </div>
+            {/* Season */}
+            {episode.season && (
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-mono">
+                {episode.season}
+              </span>
+            )}
+
+            {/* Date */}
+            {episode.pub_date && (
+              <span className="text-[10px] text-zinc-500 font-mono">
+                {episode.pub_date}
+              </span>
+            )}
+          </div>
+
+          {/* Case / guest */}
+          {episode.case_name && (
+            <div className="text-xs text-zinc-400">{episode.case_name}</div>
+          )}
+          {episode.guest && !episode.case_name && (
+            <div className="text-xs text-zinc-400">Guest: {episode.guest}</div>
           )}
 
           {/* Description */}
           {description && (
-            <p className="text-xs text-zinc-400 leading-relaxed pt-1 border-t border-zinc-800">
+            <p className="text-xs text-zinc-500 leading-relaxed pt-1 border-t border-zinc-800">
               {description}
             </p>
           )}
 
-          {/* Color indicator for highlighted */}
           {isHighlighted && (
             <div
               className="h-0.5 rounded-full mt-2"

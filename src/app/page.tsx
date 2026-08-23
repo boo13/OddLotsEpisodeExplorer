@@ -180,7 +180,7 @@ export default function Home() {
               />
             ))}
           </div>
-          <p className="text-zinc-500 text-sm font-mono tracking-wider">LOADING CASES...</p>
+          <p className="text-zinc-500 text-sm font-mono tracking-wider">LOADING EPISODES...</p>
         </div>
       </div>
     );
@@ -201,17 +201,17 @@ export default function Home() {
                 </h1>
               </div>
             </div>
-            <span className="text-zinc-400 text-lg font-medium tracking-wide">Case Dashboard</span>
+            <span className="text-zinc-400 text-lg font-medium tracking-wide">Episode Explorer</span>
           </div>
           <div className="stats-badge text-zinc-400">
             {excludeMode && excludedCount > 0 ? (
               <span>
                 <span className="text-amber-400">{adjustedTotal.toLocaleString()}</span>
                 <span className="text-zinc-600"> / {totalEpisodes.toLocaleString()}</span>
-                <span> CASES</span>
+                <span> EPISODES</span>
               </span>
             ) : (
-              <span>{totalEpisodes.toLocaleString()} CASES</span>
+              <span>{totalEpisodes.toLocaleString()} EPISODES</span>
             )}
           </div>
         </div>
@@ -289,7 +289,7 @@ export default function Home() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="font-mono text-xs uppercase tracking-wider">Case Types</span>
+              <span className="font-mono text-xs uppercase tracking-wider">Format Types</span>
               {activeFormat && <span className="text-zinc-600 text-xs">(1 selected)</span>}
             </button>
 

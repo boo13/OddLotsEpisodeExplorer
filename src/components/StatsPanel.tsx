@@ -7,6 +7,7 @@ interface StatsSummary {
   totalSeasons: number;
   totalFormats: number;
   collection: string;
+  sinceRelaunch: number;
 }
 
 interface CountItem {
@@ -17,8 +18,9 @@ interface CountItem {
 interface EpisodeItem {
   id: number;
   title: string;
-  season: string;
+  season: string | null;
   format: string;
+  pub_date: string | null;
 }
 
 interface StatsData {
@@ -50,13 +52,8 @@ function LoadingSkeleton() {
   );
 }
 
-function BarList({
-  data,
-}: {
-  data: CountItem[];
-}) {
+function BarList({ data }: { data: CountItem[] }) {
   if (data.length === 0) return null;
-
   const maxCount = Math.max(...data.map(item => item.count), 1);
 
   return (
@@ -92,9 +89,12 @@ function RecentList({ data }: { data: EpisodeItem[] }) {
           <div className="min-w-0">
             <div className="text-zinc-300 truncate">{item.title}</div>
             <div className="text-zinc-500 font-mono uppercase tracking-wider">
-              {item.season} · {item.format}
+              {[item.season, item.format].filter(Boolean).join(' · ')}
             </div>
           </div>
+          {item.pub_date && (
+            <span className="text-zinc-600 font-mono text-[10px] flex-shrink-0">{item.pub_date}</span>
+          )}
         </div>
       ))}
     </div>
@@ -106,7 +106,6 @@ export function StatsPanel({ isExpanded }: StatsPanelProps) {
 
   useEffect(() => {
     if (!isExpanded || data) return;
-
     let cancelled = false;
 
     fetch('/api/stats')
@@ -114,52 +113,43 @@ export function StatsPanel({ isExpanded }: StatsPanelProps) {
       .then((payload: StatsData) => {
         if (!cancelled) setData(payload);
       })
-      .catch(err => {
-        console.error('Failed to load stats:', err);
-      });
+      .catch(err => console.error('Failed to load stats:', err));
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [data, isExpanded]);
 
-  if (!isExpanded) {
-    return null;
-  }
-
-  if (!data) {
-    return <LoadingSkeleton />;
-  }
+  if (!isExpanded) return null;
+  if (!data) return <LoadingSkeleton />;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stats-grid">
       <div className="stat-card">
         <div className="text-3xl font-semibold text-white">{data.summary.totalEpisodes.toLocaleString()}</div>
-        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Cases indexed</div>
+        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Total episodes</div>
         <div className="mt-4 text-sm text-zinc-400">
-          Real Undisclosed case entries from the official cases index.
+          Full catalog from 2015 through today.
         </div>
       </div>
 
       <div className="stat-card">
-        <div className="text-3xl font-semibold text-white">{data.summary.totalSeasons}</div>
-        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Seasons covered</div>
+        <div className="text-3xl font-semibold text-white">{data.summary.sinceRelaunch}</div>
+        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Since relaunch</div>
         <div className="mt-4 text-sm text-zinc-400">
-          Season 7 back through Season 1.
+          Episodes published after the Feb 2025 relaunch.
         </div>
       </div>
 
       <div className="stat-card">
         <div className="text-3xl font-semibold text-white">{data.summary.totalFormats}</div>
-        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Formats tracked</div>
+        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Format types</div>
         <div className="mt-4">
           <BarList data={data.formatCounts} />
         </div>
       </div>
 
       <div className="stat-card">
-        <div className="text-lg font-semibold text-white">Recent entries</div>
-        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Latest in source order</div>
+        <div className="text-lg font-semibold text-white">Most recent</div>
+        <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">Latest episodes</div>
         <div className="mt-4">
           <RecentList data={data.recentEpisodes} />
         </div>
@@ -170,7 +160,7 @@ export function StatsPanel({ isExpanded }: StatsPanelProps) {
           <div>
             <div className="text-lg font-semibold text-white">Season breakdown</div>
             <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mt-1">
-              Official Undisclosed case groups
+              Episodes per season
             </div>
           </div>
           <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono">

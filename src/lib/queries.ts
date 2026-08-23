@@ -1,96 +1,33 @@
+import { EPISODES } from './undisclosedData';
 import { FORMATS, CATEGORIES } from './categories';
-import { SEASON_ORDER, UNDISCLOSED_CASES } from './undisclosedData';
 import type { Episode } from '@/types/episode';
 
-function toEpisode(record: (typeof UNDISCLOSED_CASES)[number]): Episode {
-  return {
-    id: record.id,
-    title: record.title,
-    season: record.season,
-    format: record.format,
-    collection: record.collection,
-    guest: record.season,
-    description: record.description,
-    pub_date: null,
-    guest_title: record.format,
-    guest_company: 'Undisclosed Podcast',
-    episode_link: record.sourceUrl,
-    duration_seconds: null,
-  };
-}
-
-function sortBySourceOrder(a: Episode, b: Episode): number {
-  const seasonDelta = getSeasonIndex(a.season) - getSeasonIndex(b.season);
-  if (seasonDelta !== 0) return seasonDelta;
-  return a.id - b.id;
-}
-
-function getSeasonIndex(season: string | null): number {
-  if (!season) return SEASON_ORDER.length;
-  return SEASON_ORDER.indexOf(season as (typeof SEASON_ORDER)[number]);
-}
-
-function matchesText(episode: Episode, query: string): boolean {
-  const haystack = [
-    episode.title,
-    episode.description ?? '',
-    episode.season ?? '',
-    episode.format ?? '',
-    episode.collection ?? '',
-  ].join(' ').toLowerCase();
-
-  return query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .every(token => haystack.includes(token));
-}
-
 export function getAllEpisodes(): Episode[] {
-  return UNDISCLOSED_CASES.map(toEpisode).sort(sortBySourceOrder);
+  return EPISODES;
 }
 
 export function searchEpisodes(query: string): Episode[] {
-  const trimmed = query.trim();
-  if (!trimmed) return [];
-  return getAllEpisodes().filter(episode => matchesText(episode, trimmed));
-}
-
-export function searchByFormat(keywords: string[], matchField: 'title' | 'title_or_description'): Episode[] {
-  const all = getAllEpisodes();
-  const lowered = keywords.map(keyword => keyword.toLowerCase());
-
-  return all.filter(episode => {
-    const fieldValue = matchField === 'title'
-      ? episode.title
-      : `${episode.title} ${episode.description ?? ''}`;
-    const haystack = fieldValue.toLowerCase();
-    return lowered.some(keyword => haystack.includes(keyword));
+  const q = query.trim();
+  if (!q) return [];
+  const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return EPISODES.filter(ep => {
+    const haystack = [
+      ep.title,
+      ep.case_name ?? '',
+      ep.guest ?? '',
+      ep.format,
+      ep.season ?? '',
+    ].join(' ').toLowerCase();
+    return tokens.every(t => haystack.includes(t));
   });
 }
 
-export function searchByCategory(keywords: string[]): Episode[] {
-  const all = getAllEpisodes();
-  const lowered = keywords.map(keyword => keyword.toLowerCase());
-
-  return all.filter(episode => {
-    const haystack = `${episode.season ?? ''} ${episode.title} ${episode.description ?? ''}`.toLowerCase();
-    return lowered.some(keyword => haystack.includes(keyword));
-  });
+export function getEpisodesByFormat(formatName: string): Episode[] {
+  return EPISODES.filter(ep => ep.format === formatName);
 }
 
-export function searchByGuest(guestName: string): Episode[] {
-  return getAllEpisodes().filter(episode =>
-    episode.season?.toLowerCase() === guestName.toLowerCase()
-      || episode.title.toLowerCase().includes(guestName.toLowerCase())
-  );
-}
-
-export function searchByCompany(companyName: string): Episode[] {
-  return getAllEpisodes().filter(episode =>
-    episode.format?.toLowerCase() === companyName.toLowerCase()
-      || episode.collection?.toLowerCase() === companyName.toLowerCase()
-  );
+export function getEpisodesBySeason(seasonName: string): Episode[] {
+  return EPISODES.filter(ep => ep.season === seasonName);
 }
 
 export interface StatsSummary {
@@ -98,6 +35,7 @@ export interface StatsSummary {
   totalSeasons: number;
   totalFormats: number;
   collection: string;
+  sinceRelaunch: number;
 }
 
 export interface SeasonCount {
@@ -117,44 +55,52 @@ export interface HighlightCount {
 }
 
 export function getStatsSummary(): StatsSummary {
-  const episodes = getAllEpisodes();
-  const seasons = new Set(episodes.map(episode => episode.season).filter(Boolean));
-  const formats = new Set(episodes.map(episode => episode.format).filter(Boolean));
+  const seasons = new Set(EPISODES.map(e => e.season).filter(Boolean));
+  const formats = new Set(EPISODES.map(e => e.format).filter(Boolean));
+  const sinceRelaunch = EPISODES.filter(
+    e => e.pub_date && e.pub_date >= '2025-02-01'
+  ).length;
 
   return {
-    totalEpisodes: episodes.length,
+    totalEpisodes: EPISODES.length,
     totalSeasons: seasons.size,
     totalFormats: formats.size,
     collection: 'Undisclosed',
+    sinceRelaunch,
   };
 }
 
 export function getSeasonCounts(): SeasonCount[] {
-  const episodes = getAllEpisodes();
-  return CATEGORIES.map(category => ({
-    name: category.name,
-    count: episodes.filter(episode => episode.season === category.name).length,
+  return CATEGORIES.map(cat => ({
+    name: cat.name,
+    count: EPISODES.filter(e => e.season === cat.name).length,
   }));
 }
 
 export function getFormatCounts(): FormatCount[] {
-  const episodes = getAllEpisodes();
-  return FORMATS.map(format => ({
-    name: format.name,
-    count: episodes.filter(episode => episode.format === format.name).length,
-    episodeIds: episodes.filter(episode => episode.format === format.name).map(episode => episode.id),
-  }));
+  return FORMATS.map(fmt => {
+    const matches = EPISODES.filter(e => e.format === fmt.name);
+    return {
+      name: fmt.name,
+      count: matches.length,
+      episodeIds: matches.map(e => e.id),
+    };
+  });
 }
 
-export function getTopTitles(limit = 10): HighlightCount[] {
-  return getAllEpisodes()
-    .slice(0, limit)
-    .map(episode => ({
-      name: episode.title,
-      count: 1,
-    }));
+export function getGuestCounts(limit = 20): HighlightCount[] {
+  const counts: Record<string, number> = {};
+  for (const ep of EPISODES) {
+    if (ep.guest) {
+      counts[ep.guest] = (counts[ep.guest] ?? 0) + 1;
+    }
+  }
+  return Object.entries(counts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 }
 
 export function getRecentEpisodes(limit = 8): Episode[] {
-  return getAllEpisodes().slice(0, limit);
+  return EPISODES.slice(0, limit);
 }

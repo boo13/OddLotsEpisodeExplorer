@@ -1,16 +1,14 @@
 export interface Episode {
   id: number;
   title: string;
-  season: string | null;
-  format: string | null;
-  collection: string | null;
-  guest: string | null;
-  description: string | null;
+  format: string;  // 'TJ Weekly' | 'Unfiltered' | 'Season Episode' | 'Addendum' | 'Mini Series' | 'Bonus' | 'Other'
+  season: string | null;  // 'S1' through 'S7', or null
+  case_name: string | null;  // e.g. "The State v. Amanda Lewis"
+  guest: string | null;  // TJ Weekly featured person
   pub_date: string | null;
-  guest_title: string | null;
-  guest_company: string | null;
-  episode_link: string | null;
   duration_seconds: number | null;
+  description: string | null;
+  episode_link: string | null;
 }
 
 export interface EpisodeWithHighlight extends Episode {
